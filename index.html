@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Freshpaint Demo</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-MXN7D98M');</script>
+  <!-- End Google Tag Manager -->
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+  <style>
+    :root {
+      --primary-color: #1ED760;
+      --secondary-color: #2AEF7A;
+      --background-color: #032126;
+      --text-color: #ffffff;
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      --border-radius: 12px;
+      --font-family: "Schibsted Grostesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, var(--background-color) 0%, #0a4a5c 100%);
+      font-family: var(--font-family);
+      color: var(--text-color);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .jumbotron {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      padding: 50px 40px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      text-align: center;
+      margin-bottom: 30px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .jumbotron::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+      opacity: 0.1;
+    }
+
+    .jumbotron h1 {
+      margin: 0;
+      font-size: 3rem;
+      font-weight: 700;
+      color: #ffffff;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      position: relative;
+      z-index: 1;
+    }
+
+    nav {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 15px 20px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      text-align: center;
+      margin-bottom: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    nav a {
+      color: var(--text-color);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      padding: 10px 20px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 0 8px;
+      display: inline-block;
+    }
+
+    nav a:hover {
+      background: var(--primary-color);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(30, 215, 96, 0.4);
+    }
+
+    #map-container {
+      position: relative;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    #map {
+      height: 70vh;
+      border-radius: var(--border-radius);
+    }
+
+    #search-container {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      right: 20px;
+      display: flex;
+      gap: 12px;
+      padding: 12px;
+      background: var(--card-bg);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+    }
+
+    #search-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      font-size: 16px;
+      font-family: var(--font-family);
+      transition: border-color 0.3s ease;
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    #search-input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      background: #ffffff;
+    }
+
+    #search-button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      background: var(--primary-color);
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    #search-button:hover {
+      background: var(--secondary-color);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(30, 215, 96, 0.4);
+    }
+
+    #search-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    #search-suggestions {
+      position: absolute;
+      top: 64px;
+      left: 12px;
+      right: 12px;
+      margin: 0;
+      padding: 8px 0;
+      list-style: none;
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      max-height: 240px;
+      overflow-y: auto;
+      display: none;
+      z-index: 1001;
+    }
+
+    #search-suggestions li {
+      padding: 12px 16px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: background-color 0.2s ease;
+      color: black;
+    }
+
+    #search-suggestions li:hover,
+    #search-suggestions li[aria-selected="true"] {
+      background: rgba(26, 115, 232, 0.12);
+    }
+
+    .leaflet-control-zoom {
+      bottom: 20px !important;
+      left: 20px !important;
+      border-radius: 8px !important;
+      box-shadow: var(--shadow) !important;
+    }
+
+    .leaflet-control-zoom a {
+      background: var(--card-bg) !important;
+      color: #333 !important;
+      border: none !important;
+      width: 32px !important;
+      height: 32px !important;
+      line-height: 30px !important;
+      border-radius: 6px !important;
+      transition: all 0.3s ease !important;
+    }
+
+    .leaflet-control-zoom a:hover {
+      background: var(--primary-color) !important;
+      color: white !important;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 15px;
+      }
+
+      .jumbotron {
+        padding: 30px 20px;
+      }
+
+      .jumbotron h1 {
+        font-size: 2rem;
+      }
+
+      nav {
+        padding: 12px 15px;
+      }
+
+      nav a {
+        padding: 8px 16px;
+        font-size: 1rem;
+      }
+
+      #map-container {
+        margin: 0;
+      }
+
+      #search-container {
+        top: 15px;
+        left: 15px;
+        right: 15px;
+        padding: 10px;
+      }
+
+      .leaflet-control-zoom {
+        bottom: 15px !important;
+        left: 15px !important;
+      }
+
+      #search-suggestions {
+        top: 60px;
+        left: 10px;
+        right: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MXN7D98M"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
+<div class = "jumbotron">
+  <h1 class="display-4"> Freshpaint Demo</h1>
+</div>
+<nav>
+  <a href="index.html">Non-FP Map</a>
+  <a href="fpmap.html">FP Map</a>
+  <a href="video_demo.html">Video Demo</a>
+</nav>
+
+<div id="map-container" style="position: relative; width: 90%; margin: 20px auto;">
+<div id="map"></div>
+
+<div id="search-container">
+  <input id="search-input" type="text" placeholder="Search for a place..." aria-label="Search locations" autocomplete="off" />
+  <button id="search-button" type="button">Search</button>
+  <ul id="search-suggestions" role="listbox" aria-label="Search suggestions"></ul>
+</div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+// 1. Create map centered on Chicago
+var map = L.map('map', { zoomControl: false }).setView([41.8781, -87.6298], 11);
+
+// 2. Add map tiles
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap'
+}).addTo(map);
+
+// Add zoom control at bottom left
+L.control.zoom({ position: 'bottomleft' }).addTo(map);
+
+// 3. Hard-coded markers (same as dummy3.html)
+const markers = [
+  {
+    LngLat: [-87.7276, 41.7919],
+    Header: "UI Health",
+    Address: "1740 W Taylor St, Chicago, IL 60612",
+    Href: "https://hospital.uillinois.edu/",
+  },
+  {
+    LngLat: [-87.69738, 41.85505],
+    Header: "Saint Anthony Hospital",
+    Address: "2875 W 19th St, Chicago, IL 60623",
+    Href: "https://sahchicago.org/",
+  },
+  {
+    LngLat: [-87.6216, 41.8948],
+    Header: "Northwestern Memorial Hospital",
+    Address: "251 E Huron St, Chicago, IL 60611",
+    Href: "https://www.nm.org/locations/northwestern-memorial-hospital",
+  },
+  {
+    LngLat: [-87.6690, 41.8740],
+    Header: "Rush University Medical Center",
+    Address: "1653 W Congress Pkwy, Chicago, IL 60612",
+    Href: "https://www.rush.edu/",
+  },
+  {
+    LngLat: [-87.6050, 41.7886],
+    Header: "UChicago Medicine",
+    Address: "5841 S Maryland Ave, Chicago, IL 60637",
+    Href: "https://www.uchicagomedicine.org/",
+  },
+  {
+    LngLat: [-87.6662, 41.9592],
+    Header: "Mount Sinai Hospital",
+    Address: "1500 S Fairfield Ave, Chicago, IL 60608",
+    Href: "https://www.mountsinaichicago.org/",
+  },
+  {
+    LngLat: [-87.6550, 41.9531],
+    Header: "Advocate Illinois Masonic Medical Center",
+    Address: "836 W Wellington Ave, Chicago, IL 60657",
+    Href: "https://www.advocatehealth.com/locations/illinois-masonic-medical-center",
+  },
+];
+
+const leafletMarkers = markers.map((m) => {
+  const marker = L.marker([m.LngLat[1], m.LngLat[0]]).addTo(map);
+  marker.bindPopup(`<b>${m.Header}</b><br>${m.Address}<br><a href="${m.Href}" target="_blank" rel="noreferrer">${m.Href}</a>`);
+  return { ...m, marker };
+});
+
+const searchInput = document.getElementById("search-input");
+const searchButton = document.getElementById("search-button");
+const suggestionsEl = document.getElementById("search-suggestions");
+let suggestions = [];
+let selectedIndex = -1;
+
+const clearSuggestions = () => {
+  suggestionsEl.style.display = "none";
+  suggestionsEl.innerHTML = "";
+  suggestions = [];
+  selectedIndex = -1;
+};
+
+const highlightSuggestion = (index) => {
+  const items = Array.from(suggestionsEl.children);
+  items.forEach((item, i) => {
+    item.setAttribute("aria-selected", i === index ? "true" : "false");
+  });
+  selectedIndex = index;
+};
+
+const updateSuggestions = (query) => {
+  const normalized = query.trim().toLowerCase();
+  if (!normalized) {
+    clearSuggestions();
+    return;
+  }
+
+  suggestions = leafletMarkers.filter((m) => m.Header.toLowerCase().includes(normalized));
+  if (suggestions.length === 0) {
+    clearSuggestions();
+    return;
+  }
+
+  suggestionsEl.innerHTML = "";
+  suggestions.forEach((m, i) => {
+    const li = document.createElement("li");
+    li.textContent = m.Header;
+    li.setAttribute("role", "option");
+    li.addEventListener("click", () => selectSuggestion(i));
+    suggestionsEl.appendChild(li);
+  });
+
+  suggestionsEl.style.display = "block";
+  highlightSuggestion(0);
+};
+
+const setSearchResult = (markerEntry) => {
+  const [lon, lat] = markerEntry.LngLat;
+  map.flyTo([lat, lon], 15);
+  markerEntry.marker.openPopup();
+};
+
+const selectSuggestion = (index) => {
+  const candidate = suggestions[index];
+  if (!candidate) return;
+
+  searchInput.value = candidate.Header;
+  setSearchResult(candidate);
+  clearSuggestions();
+};
+
+const runSearch = () => {
+  const q = searchInput.value.trim();
+  if (!q) return;
+
+  const exactMatch = leafletMarkers.find((m) => m.Header.toLowerCase() === q.toLowerCase());
+  if (exactMatch) {
+    setSearchResult(exactMatch);
+    return;
+  }
+
+  if (suggestions.length > 0) {
+    selectSuggestion(0);
+    return;
+  }
+};
+
+searchInput.addEventListener("input", (event) => {
+  updateSuggestions(event.target.value);
+});
+
+searchInput.addEventListener("keydown", (event) => {
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
+    if (suggestions.length === 0) return;
+    const next = (selectedIndex + 1) % suggestions.length;
+    highlightSuggestion(next);
+    return;
+  }
+
+  if (event.key === "ArrowUp") {
+    event.preventDefault();
+    if (suggestions.length === 0) return;
+    const prev = (selectedIndex - 1 + suggestions.length) % suggestions.length;
+    highlightSuggestion(prev);
+    return;
+  }
+
+  if (event.key === "Enter") {
+    event.preventDefault();
+    if (selectedIndex >= 0 && suggestions.length > 0) {
+      selectSuggestion(selectedIndex);
+      return;
+    }
+    runSearch();
+    return;
+  }
+
+  if (event.key === "Escape") {
+    clearSuggestions();
+    return;
+  }
+});
+
+searchInput.addEventListener("blur", () => {
+  setTimeout(() => clearSuggestions(), 150);
+});
+
+searchButton.addEventListener("click", runSearch);
+
+</script>
+
+</body>
+</html>

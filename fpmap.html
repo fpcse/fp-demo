@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MapLibre Sample Map</title>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-MXN7D98M');</script>
+    <!-- End Google Tag Manager -->
+<link href="https://freshpaint-hipaa-maps.com/maplibre-gl@3.x/dist/maplibre-gl.css" rel="stylesheet" type="text/css">
+<script src="https://freshpaint-hipaa-maps.com/maplibre-gl@3.x/dist/maplibre-gl.js" type="text/javascript"> </script>
+    <style>
+        :root {
+          --primary-color: #1ED760;
+          --secondary-color: #2AEF7A;
+          --background-color: #032126;
+          --text-color: #ffffff;
+          --card-bg: rgba(255, 255, 255, 0.95);
+          --shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          --border-radius: 12px;
+          --font-family: "Schibsted Grostesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+
+        body {
+          margin: 0;
+          padding: 20px;
+          background: linear-gradient(135deg, var(--background-color) 0%, #0a4a5c 100%);
+          font-family: var(--font-family);
+          color: var(--text-color);
+          min-height: 100vh;
+          line-height: 1.6;
+        }
+
+        .jumbotron {
+          background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+          padding: 50px 40px;
+          border-radius: var(--border-radius);
+          box-shadow: var(--shadow);
+          text-align: center;
+          margin-bottom: 30px;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .jumbotron::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+          opacity: 0.1;
+        }
+
+        .jumbotron h1 {
+          margin: 0;
+          font-size: 3rem;
+          font-weight: 700;
+          color: #ffffff;
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+          position: relative;
+          z-index: 1;
+        }
+
+        nav {
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(10px);
+          padding: 15px 20px;
+          border-radius: var(--border-radius);
+          box-shadow: var(--shadow);
+          text-align: center;
+          margin-bottom: 30px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        nav a {
+          color: var(--text-color);
+          text-decoration: none;
+          font-weight: 600;
+          font-size: 1.1rem;
+          padding: 10px 20px;
+          border-radius: 8px;
+          transition: all 0.3s ease;
+          background: rgba(255, 255, 255, 0.1);
+          margin: 0 8px;
+          display: inline-block;
+        }
+
+        nav a:hover {
+          background: var(--primary-color);
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(30, 215, 96, 0.4);
+        }
+
+        #map-container {
+          position: relative;
+          width: 100%;
+          max-width: 1200px;
+          margin: 0 auto;
+          border-radius: var(--border-radius);
+          overflow: hidden;
+          box-shadow: var(--shadow);
+        }
+
+        #map {
+          height: 70vh;
+          border-radius: var(--border-radius);
+        }
+
+        #search-container {
+          position: absolute;
+          top: 20px;
+          left: 20px;
+          right: 20px;
+          display: flex;
+          gap: 12px;
+          padding: 12px;
+          background: var(--card-bg);
+          border-radius: 10px;
+          box-shadow: var(--shadow);
+          z-index: 1000;
+          backdrop-filter: blur(10px);
+        }
+
+        #search-input {
+          flex: 1;
+          padding: 12px 16px;
+          border: 2px solid transparent;
+          border-radius: 8px;
+          font-size: 16px;
+          font-family: var(--font-family);
+          transition: border-color 0.3s ease;
+          background: rgba(255, 255, 255, 0.9);
+        }
+
+        #search-input:focus {
+          outline: none;
+          border-color: var(--primary-color);
+          background: #ffffff;
+        }
+
+        #search-button {
+          padding: 12px 24px;
+          border: none;
+          border-radius: 8px;
+          background: var(--primary-color);
+          color: white;
+          font-weight: 600;
+          font-size: 16px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        #search-button:hover {
+          background: var(--secondary-color);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(30, 215, 96, 0.4);
+        }
+
+        #search-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        #search-suggestions {
+          position: absolute;
+          top: 64px;
+          left: 12px;
+          right: 12px;
+          margin: 0;
+          padding: 8px 0;
+          list-style: none;
+          background: #ffffff;
+          border: 1px solid rgba(0, 0, 0, 0.15);
+          border-radius: 10px;
+          box-shadow: var(--shadow);
+          max-height: 240px;
+          overflow-y: auto;
+          display: none;
+          z-index: 1001;
+        }
+
+        #search-suggestions li {
+          padding: 12px 16px;
+          cursor: pointer;
+          font-size: 15px;
+          transition: background-color 0.2s ease;
+          color: black;
+        }
+
+        #search-suggestions li:hover,
+        #search-suggestions li[aria-selected="true"] {
+          background: rgba(26, 115, 232, 0.12);
+        }
+
+        #search-status {
+          position: absolute;
+          bottom: 20px;
+          left: 20px;
+          right: 20px;
+          padding: 12px 16px;
+          background: rgba(0, 0, 0, 0.8);
+          color: white;
+          border-radius: 10px;
+          font-size: 15px;
+          display: none;
+          backdrop-filter: blur(10px);
+        }
+
+        #locations-box {
+          position: absolute;
+          top: 100px;
+          left: 20px;
+          width: 300px;
+          max-height: 250px;
+          padding: 12px;
+          background: var(--card-bg);
+          border-radius: 5px;
+          box-shadow: var(--shadow);
+          z-index: 1000;
+          backdrop-filter: blur(10px);
+          overflow-y: auto;
+        }
+
+        #locations-list {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .location-item {
+          padding: 10px 12px;
+          background: rgba(255, 255, 255, 0.9);
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 14px;
+          transition: background-color 0.3s ease;
+          color: #333;
+          line-height: 1.4;
+        }
+
+        .location-item:hover {
+          background: var(--primary-color);
+          color: white;
+        }
+
+        .location-item:hover small {
+          color: rgba(255, 255, 255, 0.8);
+        }
+
+        .location-item small {
+          color: #666;
+          font-size: 12px;
+        }
+
+        .maplibregl-ctrl {
+          top: 84px !important;
+          left: 20px !important;
+          border-radius: 8px !important;
+          box-shadow: var(--shadow) !important;
+        }
+
+        .maplibregl-ctrl button {
+          background: var(--card-bg) !important;
+          color: #333 !important;
+          border: none !important;
+          width: 32px !important;
+          height: 32px !important;
+          border-radius: 6px !important;
+          transition: all 0.3s ease !important;
+        }
+
+        .maplibregl-ctrl button:hover {
+          background: var(--primary-color) !important;
+          color: white !important;
+        }
+
+        @media (max-width: 768px) {
+          body {
+            padding: 15px;
+          }
+
+          .jumbotron {
+            padding: 30px 20px;
+          }
+
+          .jumbotron h1 {
+            font-size: 2rem;
+          }
+
+          nav {
+            padding: 12px 15px;
+          }
+
+          nav a {
+            padding: 8px 16px;
+            font-size: 1rem;
+          }
+
+          #map-container {
+            margin: 0;
+          }
+
+          #search-container {
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            padding: 10px;
+          }
+
+          .maplibregl-ctrl {
+            top: 15px !important;
+            left: 15px !important;
+          }
+
+          #search-suggestions {
+            top: 60px;
+            left: 10px;
+            right: 10px;
+          }
+
+          #search-status {
+            bottom: 15px;
+            left: 15px;
+            right: 15px;
+          }
+        }
+    </style>
+</head>
+<body>
+<div class = "jumbotron">
+  <h1 class="display-4"> Freshpaint Demo</h1>
+</div>
+<nav>
+  <a href="index.html">Non-FP Map</a>
+  <a href="fpmap.html">FP Map</a>
+  <a href="video_demo.html">Video Demo</a>
+</nav>
+
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MXN7D98M"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
+    <div id="map-container">
+        <div id="map">
+            <div id="search-container">
+                <input id="search-input" type="text" placeholder="Search for a place or address..." aria-label="Search locations" autocomplete="off" />
+                <button id="search-button" type="button">Search</button>
+                <ul id="search-suggestions" role="listbox" aria-label="Search suggestions"></ul>
+            </div>
+            <div id="locations-box">
+                <h4 style="margin: 0 0 10px 0; color: #333;">Selectable Locations</h4>
+                <div id="locations-list"></div>
+            </div>
+            <div id="search-status" aria-live="polite"></div>
+        </div>
+    </div>
+    
+    <script>
+// Styles affect how the maps look:
+// We currently support the following styles:
+//   "standard-light":      colorized, typical map style
+//   "standard-dark":       colorized, typical dark map style
+//   "visualization-light": grayscale, elegant black and white style
+//   "visualization-dark":  grayscale, elegant dark black and white style
+const style = "standard-light" 
+
+// Replace the environment ID below with your freshpaint environment ID
+// Go to the URL below to see how to find your Freshpaint Environment ID
+// https://documentation.freshpaint.io/reference/faqs/where-do-i-find-my-environment-id
+const envId = "82ef97c4-8367-4d61-b0be-261498e9dd13"
+
+const map = new maplibregl.Map({
+  container: "map",
+  style: `https://freshpaint-hipaa-maps.com/${envId}/${style}/style-descriptor`,
+
+  // longitude and latitude of the map's origin
+  // Note: this is backwards compared to google maps
+  center: [-87.6800, 41.8500],
+
+  // Zoom levels (rough descriptions):
+  // 15 : a close street view
+  // 13 : city neighborhoods
+  // 11 : entire region (Chicagoland)
+  zoom: 11,
+});
+
+// This adds a toolbar for zooming an panning:
+// + : zoom in
+// - : zoom out
+// compass for rotating (e.g. north facing up or south facing up)
+map.addControl(new maplibregl.NavigationControl(), "bottom-left");
+
+// Note: LngLat is reversed from google maps which does LatLng.
+const markers = [
+  {
+    "LngLat": [-87.7276, 41.7919],
+    "Header": "UI Health",
+    "Address": "1740 W Taylor St, Chicago, IL 60612",
+    "Href": "https://hospital.uillinois.edu/"
+  },
+  {
+    "LngLat": [-87.69738, 41.85505],
+    "Header": "Saint Anthony Hospital",
+    "Address": "2875 W 19th St, Chicago, IL 60623",
+    "Href": "https://sahchicago.org/"
+  },
+  {
+    "LngLat": [-87.6216, 41.8948],
+    "Header": "Northwestern Memorial Hospital",
+    "Address": "251 E Huron St, Chicago, IL 60611",
+    "Href": "https://www.nm.org/locations/northwestern-memorial-hospital"
+  },
+  {
+    "LngLat": [-87.6690, 41.8740],
+    "Header": "Rush University Medical Center",
+    "Address": "1653 W Congress Pkwy, Chicago, IL 60612",
+    "Href": "https://www.rush.edu/"
+  },
+  {
+    "LngLat": [-87.6050, 41.7886],
+    "Header": "UChicago Medicine",
+    "Address": "5841 S Maryland Ave, Chicago, IL 60637",
+    "Href": "https://www.uchicagomedicine.org/"
+  },
+  {
+    "LngLat": [-87.6662, 41.9592],
+    "Header": "Mount Sinai Hospital",
+    "Address": "1500 S Fairfield Ave, Chicago, IL 60608",
+    "Href": "https://www.mountsinaichicago.org/"
+  },
+  {
+    "LngLat": [-87.6550, 41.9531],
+    "Header": "Advocate Illinois Masonic Medical Center",
+    "Address": "836 W Wellington Ave, Chicago, IL 60657",
+    "Href": "https://www.advocatehealth.com/locations/illinois-masonic-medical-center"
+  }
+];
+
+// You can customize popups with arbitrary HTML
+// Here, we just do a simple header and link to the website
+const newPopup = (m) => new maplibregl.Popup({ offset: 25 })
+                                      .setHTML(`<div>
+                                                    <h3 style="color: black;">${m.Header}<\/h3>                                                    <p style="color: black;">${m.Address}</p>                                                    <a href="${m.Href}">${m.Href}<\/a>
+                                                <\/div>`)
+
+// Haversine distance calculation
+function haversineDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Earth's radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+let userMarker = null;
+
+markers.forEach((m) => {
+  const popup = newPopup(m);
+  const marker = new maplibregl.Marker({color: "#808080"})
+                               .setLngLat(m.LngLat)
+                               .setPopup(popup)
+                               .addTo(map);
+});
+
+// Function to update locations list
+function updateLocationsList(distancesArray = null) {
+  const locationsList = document.getElementById("locations-list");
+  locationsList.innerHTML = '';
+  markers.forEach((m, index) => {
+    const item = document.createElement("div");
+    item.className = "location-item";
+    let distanceText = '';
+    if (distancesArray && distancesArray[index]) {
+      const dist = distancesArray[index].distance;
+      distanceText = `<br><small style="color: #666;">Distance: ${dist.toFixed(2)} km</small>`;
+    }
+    item.innerHTML = `<strong>${m.Header}</strong><br><small>${m.Address}</small>${distanceText}`;
+    item.addEventListener("click", () => {
+      setSearchResult(m);
+      showStatus(`Selected: ${m.Header}`);
+    });
+    locationsList.appendChild(item);
+  });
+}
+
+// Initial populate
+updateLocationsList();
+
+// Add click event to drop pin
+map.on('click', (e) => {
+  // Remove previous user marker
+  if (userMarker) {
+    userMarker.remove();
+  }
+  // Add new user marker
+  userMarker = new maplibregl.Marker({color: "#ff0000"})
+    .setLngLat(e.lngLat)
+    .setPopup(new maplibregl.Popup().setHTML('<div style="color: black;">Your Location</div>'))
+    .addTo(map);
+
+  // Calculate distances
+  const userLngLat = e.lngLat;
+  const distances = markers.map(m => ({
+    marker: m,
+    distance: haversineDistance(userLngLat.lat, userLngLat.lng, m.LngLat[1], m.LngLat[0])
+  }));
+
+  // Update locations list with distances
+  updateLocationsList(distances);
+
+  // Show status
+  showStatus("Pin dropped! Distances calculated.");
+});
+
+
+const searchInput = document.getElementById("search-input");
+const searchButton = document.getElementById("search-button");
+const searchStatus = document.getElementById("search-status");
+let searchMarker = null;
+
+const showStatus = (message, isError = false) => {
+  searchStatus.textContent = message;
+  searchStatus.style.background = isError ? "rgba(220, 53, 69, 0.85)" : "rgba(0, 0, 0, 0.6)";
+  searchStatus.style.display = "block";
+  window.clearTimeout(searchStatus._hideTimeout);
+  searchStatus._hideTimeout = window.setTimeout(() => {
+    searchStatus.style.display = "none";
+  }, 4500);
+};
+
+const suggestionsEl = document.getElementById("search-suggestions");
+let suggestions = [];
+let selectedIndex = -1;
+
+const clearSuggestions = () => {
+  suggestionsEl.style.display = "none";
+  suggestionsEl.innerHTML = "";
+  suggestions = [];
+  selectedIndex = -1;
+};
+
+const highlightSuggestion = (index) => {
+  const items = Array.from(suggestionsEl.children);
+  items.forEach((item, i) => {
+    item.setAttribute("aria-selected", i === index ? "true" : "false");
+  });
+  selectedIndex = index;
+};
+
+const updateSuggestions = (query) => {
+  const normalized = query.trim().toLowerCase();
+  if (!normalized) {
+    clearSuggestions();
+    return;
+  }
+
+  suggestions = markers.filter((m) => m.Header.toLowerCase().includes(normalized));
+  if (suggestions.length === 0) {
+    clearSuggestions();
+    return;
+  }
+
+  suggestionsEl.innerHTML = "";
+  suggestions.forEach((m, i) => {
+    const li = document.createElement("li");
+    li.textContent = m.Header;
+    li.setAttribute("role", "option");
+    li.addEventListener("click", () => selectSuggestion(i));
+    suggestionsEl.appendChild(li);
+  });
+
+  suggestionsEl.style.display = "block";
+  highlightSuggestion(0);
+};
+
+const selectSuggestion = (index) => {
+  const candidate = suggestions[index];
+  if (!candidate) return;
+
+  searchInput.value = candidate.Header;
+  setSearchResult(candidate);
+  showStatus(`Selected: ${candidate.Header}`);
+  clearSuggestions();
+};
+
+const setSearchResult = (m) => {
+  const [lon, lat] = m.LngLat;
+  map.flyTo({ center: [lon, lat], zoom: 15 });
+
+  if (searchMarker) {
+    searchMarker.remove();
+  }
+  searchMarker = new maplibregl.Marker({ color: "#1a73e8" })
+    .setLngLat([lon, lat])
+    .setPopup(newPopup(m))
+    .addTo(map)
+    .togglePopup();
+};
+
+const runSearch = () => {
+  const q = searchInput.value.trim();
+  if (!q) {
+    showStatus("Please enter a search term.", true);
+    return;
+  }
+
+  const exactMatch = markers.find((m) => m.Header.toLowerCase() === q.toLowerCase());
+  if (exactMatch) {
+    selectSuggestion(markers.indexOf(exactMatch));
+    return;
+  }
+
+  if (suggestions.length > 0) {
+    selectSuggestion(0);
+    return;
+  }
+
+  showStatus("No matching marker found.", true);
+};
+
+searchInput.addEventListener("input", (event) => {
+  updateSuggestions(event.target.value);
+});
+
+searchInput.addEventListener("keydown", (event) => {
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
+    if (suggestions.length === 0) return;
+    const next = (selectedIndex + 1) % suggestions.length;
+    highlightSuggestion(next);
+    return;
+  }
+
+  if (event.key === "ArrowUp") {
+    event.preventDefault();
+    if (suggestions.length === 0) return;
+    const prev = (selectedIndex - 1 + suggestions.length) % suggestions.length;
+    highlightSuggestion(prev);
+    return;
+  }
+
+  if (event.key === "Enter") {
+    event.preventDefault();
+    if (selectedIndex >= 0 && suggestions.length > 0) {
+      selectSuggestion(selectedIndex);
+      return;
+    }
+    runSearch();
+    return;
+  }
+
+  if (event.key === "Escape") {
+    clearSuggestions();
+    return;
+  }
+});
+
+searchInput.addEventListener("blur", () => {
+  setTimeout(() => clearSuggestions(), 150);
+});
+
+searchButton.addEventListener("click", runSearch);
+
+    </script>
+</body>
+</html>

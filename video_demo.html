@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Freshpaint Demo</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-MXN7D98M');</script>
+  <!-- End Google Tag Manager -->
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+  <style>
+    :root {
+      --primary-color: #1ED760;
+      --secondary-color: #2AEF7A;
+      --background-color: #032126;
+      --text-color: #ffffff;
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      --border-radius: 12px;
+      --font-family: "Schibsted Grostesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, var(--background-color) 0%, #0a4a5c 100%);
+      font-family: var(--font-family);
+      color: var(--text-color);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .jumbotron {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      padding: 50px 40px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      text-align: center;
+      margin-bottom: 30px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .jumbotron::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+      opacity: 0.1;
+    }
+
+    .jumbotron h1 {
+      margin: 0;
+      font-size: 3rem;
+      font-weight: 700;
+      color: #ffffff;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      position: relative;
+      z-index: 1;
+    }
+
+    nav {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 15px 20px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      text-align: center;
+      margin-bottom: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    nav a {
+      color: var(--text-color);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      padding: 10px 20px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 0 8px;
+      display: inline-block;
+    }
+
+    nav a:hover {
+      background: var(--primary-color);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(30, 215, 96, 0.4);
+    }
+
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .video-card {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      min-height: 320px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+    }
+
+    .video-card .label {
+      margin-top: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .video-card video {
+      width: 100%;
+      max-height: 280px;
+      border-radius: 10px;
+      background: #000;
+    }
+
+    @media (max-width: 768px) {
+      .video-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="jumbotron">
+    <h1 class="display-4">Freshpaint Demo</h1>
+  </div>
+  <nav>
+    <a href="index.html">Non-FP Map</a>
+    <a href="fpmap.html">FP Map</a>
+    <a href="video_demo.html">Video Demo</a>
+  </nav>
+
+  <section class="video-grid">
+    <div class="video-card">
+      <!-- <video controls muted autoplay loop playsinline> -->
+<iframe src="https://freshpaint-video.com/23be29bf-50ef-41bf-9aec-f44bdc7311d6/03f92749-f410-4c7a-84bd-61fab243a7ea?autoplay=true"  width="500" height="280" frameborder="0" title="Freshpaint Video Player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+      <!-- </video> -->
+      <div class="label">Freshpaint Hosted Video</div>
+    </div>
+
+    <div class="video-card">
+      <video controls muted autoplay loop playsinline>
+        <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" type="video/mp4">
+        Your browser does not support video.
+      </video>
+      <div class="label">Google Hosted Video</div>
+    </div>
+  </section>
+</body>
+</html>
+
+<!-- <iframe src="https://freshpaint-video.com/23be29bf-50ef-41bf-9aec-f44bdc7311d6/03f92749-f410-4c7a-84bd-61fab243a7ea" width="560" height="315" frameborder="0" title="Freshpaint Video Player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe> -->
