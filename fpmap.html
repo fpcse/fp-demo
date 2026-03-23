@@ -369,7 +369,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
     </div>
     
-    <script src="config.js"></script>
     <script>
 // Styles affect how the maps look:
 // We currently support the following styles:
@@ -377,7 +376,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 //   "standard-dark":       colorized, typical dark map style
 //   "visualization-light": grayscale, elegant black and white style
 //   "visualization-dark":  grayscale, elegant dark black and white style
-const style = "standard-light"
+const style = "standard-light" 
+
+// Replace the environment ID below with your freshpaint environment ID
+// Go to the URL below to see how to find your Freshpaint Environment ID
+// https://documentation.freshpaint.io/reference/faqs/where-do-i-find-my-environment-id
+const envId = "82ef97c4-8367-4d61-b0be-261498e9dd13"
 
 const map = new maplibregl.Map({
   container: "map",
